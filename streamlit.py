@@ -3,30 +3,28 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
-# 1. Configuração da página
 st.set_page_config(
-    page_title="Xbox Analytics Hub",
+    page_title="Painel Xbox Analytics",
     page_icon="🎮",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 2. Estilos refinados (Dark Slate, Cartões de Métricas e Remoção de fundos brancos)
 st.markdown("""
 <style>
-    /* Fundo da aplicação */
+    /* Cor de fundo geral */
     .stApp {
         background-color: #0f1216;
         color: #e2e8f0;
     }
     
-    /* Barra lateral */
+    /* Estilo da sidebar */
     section[data-testid="stSidebar"] {
         background-color: #161b22;
         border-right: 1px solid #232a36;
     }
     
-    /* Cartões personalizados para as métricas */
+    /* Cards dos indicadores (KPIs) */
     .kpi-card {
         background: #171d25;
         border: 1px solid #263040;
@@ -55,7 +53,7 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* Ajuste dos separadores e abas */
+    /* Linhas divisórias e abas */
     hr {
         border-color: #263040;
     }
@@ -70,7 +68,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Conjunto de dados simulado
 @st.cache_data
 def gerar_dados():
     np.random.seed(42)
@@ -91,41 +88,36 @@ def gerar_dados():
 
 df = gerar_dados()
 
-# 4. Painel de Filtros (Barra Lateral)
-st.sidebar.markdown("### 🎮 Filtros Analíticos")
-st.sidebar.caption("Selecione os parâmetros para recalcular os indicadores:")
+st.sidebar.markdown("### 🎮 Painel de Filtros")
+st.sidebar.caption("Escolha as opções abaixo para atualizar os indicadores:")
 
 plataformas_disponiveis = list(df["Plataforma"].unique())
 filtro_plataforma = st.sidebar.multiselect(
-    "Plataforma",
+    "Plataformas",
     options=plataformas_disponiveis,
     default=plataformas_disponiveis
 )
 
 categorias_disponiveis = list(df["Categoria"].unique())
 filtro_categoria = st.sidebar.multiselect(
-    "Categoria de Produto",
+    "Categorias de Produto",
     options=categorias_disponiveis,
     default=categorias_disponiveis
 )
 
-# Aplicação dos filtros
 df_filtrado = df[
     (df["Plataforma"].isin(filtro_plataforma)) &
     (df["Categoria"].isin(filtro_categoria))
 ]
 
-# 5. Cabeçalho Principal
-st.title("Xbox Global Sales & Subscriptions")
-st.caption("Consola de Inteligência Operacional e Desempenho do Ecossistema de Jogos")
+st.title("Xbox — Vendas e Assinaturas Globais")
+st.caption("Painel de acompanhamento do desempenho do ecossistema de jogos Xbox")
 st.markdown("---")
 
-# Tratamento para seleção vazia
 if df_filtrado.empty:
-    st.warning("Nenhum registo encontrado com os filtros selecionados. Por favor, ajuste as opções na barra lateral.")
+    st.warning("Não há dados para os filtros escolhidos. Altere as seleções na barra lateral para continuar.")
     st.stop()
 
-# 6. Indicadores de Desempenho (KPI Cards estruturados)
 receita_total = df_filtrado["Valor"].sum()
 total_transacoes = len(df_filtrado)
 ticket_medio = receita_total / total_transacoes
@@ -136,18 +128,18 @@ c1, c2, c3, c4 = st.columns(4)
 with c1:
     st.markdown(f"""
     <div class="kpi-card">
-        <div class="kpi-title">Receita Acumulada</div>
+        <div class="kpi-title">Receita Total</div>
         <div class="kpi-value">R$ {receita_total:,.2f}</div>
-        <div class="kpi-sub">● Vendas Brutas</div>
+        <div class="kpi-sub">● Faturamento Bruto</div>
     </div>
     """, unsafe_allow_html=True)
 
 with c2:
     st.markdown(f"""
     <div class="kpi-card">
-        <div class="kpi-title">Volume de Pedidos</div>
+        <div class="kpi-title">Total de Pedidos</div>
         <div class="kpi-value">{total_transacoes:,}</div>
-        <div class="kpi-sub">● Transações Processadas</div>
+        <div class="kpi-sub">● Transações Registradas</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -156,31 +148,30 @@ with c3:
     <div class="kpi-card">
         <div class="kpi-title">Ticket Médio</div>
         <div class="kpi-value">R$ {ticket_medio:,.2f}</div>
-        <div class="kpi-sub">● Valor Médio/Pedido</div>
+        <div class="kpi-sub">● Média por Pedido</div>
     </div>
     """, unsafe_allow_html=True)
 
 with c4:
     st.markdown(f"""
     <div class="kpi-card">
-        <div class="kpi-title">Categoria Líder</div>
+        <div class="kpi-title">Categoria Destaque</div>
         <div class="kpi-value" style="font-size: 1.35rem;">{top_categoria}</div>
-        <div class="kpi-sub">● Maior Frequência</div>
+        <div class="kpi-sub">● Mais Vendida</div>
     </div>
     """, unsafe_allow_html=True)
 
-# 7. Abas de Visualização
 tab_graficos, tab_detalhes, tab_dados = st.tabs([
-    "📈 Evolução e Segmentação", 
-    "📊 Repartição por Plataforma", 
-    "📋 Registos Brutos"
+    "📈 Tendências e Categorias", 
+    "📊 Vendas por Plataforma", 
+    "📋 Dados Detalhados"
 ])
 
 with tab_graficos:
     col_esq, col_dir = st.columns([1.5, 1])
     
     with col_esq:
-        st.subheader("Receita Mensal Consolidada")
+        st.subheader("Receita ao Longo dos Meses")
         df_mensal = df_filtrado.groupby("Mês", as_index=False)["Valor"].sum()
         
         grafico_area = alt.Chart(df_mensal).mark_area(
@@ -202,7 +193,7 @@ with tab_graficos:
         st.altair_chart(grafico_area, use_container_width=True)
 
     with col_dir:
-        st.subheader("Receita por Categoria")
+        st.subheader("Faturamento por Categoria")
         df_cat = df_filtrado.groupby("Categoria", as_index=False)["Valor"].sum().sort_values(by="Valor", ascending=False)
         
         grafico_barras = alt.Chart(df_cat).mark_bar(
@@ -218,7 +209,7 @@ with tab_graficos:
         st.altair_chart(grafico_barras, use_container_width=True)
 
 with tab_detalhes:
-    st.subheader("Desempenho por Meio de Acesso")
+    st.subheader("Resultado por Plataforma de Acesso")
     df_plat = df_filtrado.groupby("Plataforma", as_index=False)["Valor"].sum()
     
     grafico_plat = alt.Chart(df_plat).mark_bar(
@@ -234,12 +225,12 @@ with tab_detalhes:
     st.altair_chart(grafico_plat, use_container_width=True)
 
 with tab_dados:
-    st.subheader("Base Filtrada")
+    st.subheader("Tabela com Filtros Aplicados")
     st.dataframe(df_filtrado, use_container_width=True)
     
     csv = df_filtrado.to_csv(index=False).encode('utf-8')
     st.download_button(
-        label="📥 Descarregar Recorte em CSV",
+        label="📥 Baixar Dados em CSV",
         data=csv,
         file_name='vendas_xbox_filtradas.csv',
         mime='text/csv'
