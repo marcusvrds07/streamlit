@@ -4,66 +4,155 @@ import numpy as np
 import altair as alt
 
 st.set_page_config(
-    page_title="Painel Xbox Analytics",
-    page_icon="🎮",
+    page_title="Painel Analytics",
+    page_icon="🍄",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 st.markdown("""
 <style>
-    /* Cor de fundo geral */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    :root {
+        --bg: #0e0f13;
+        --surface: #171920;
+        --border: rgba(148, 163, 184, 0.10);
+        --text: #e6edf3;
+        --muted: #8b98a9;
+        --accent: #ff3c28;
+        --accent-dark: #e60012;
+        --accent-blue: #0ab9e6;
+    }
+
+    /* Fundo geral com brilho verde suave */
     .stApp {
-        background-color: #0f1216;
-        color: #e2e8f0;
+        background:
+            radial-gradient(900px 500px at 0% 0%, rgba(255, 60, 40, 0.14), transparent 60%),
+            radial-gradient(700px 400px at 100% 0%, rgba(10, 185, 230, 0.12), transparent 60%),
+            var(--bg);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
     }
-    
-    /* Estilo da sidebar */
+    header[data-testid="stHeader"] {
+        background: transparent;
+    }
+
+    /* Sidebar */
     section[data-testid="stSidebar"] {
-        background-color: #161b22;
-        border-right: 1px solid #232a36;
+        background: linear-gradient(180deg, #16171d 0%, #0f1014 100%);
+        border-right: 1px solid var(--border);
     }
-    
-    /* Cards dos indicadores (KPIs) */
-    .kpi-card {
-        background: #171d25;
-        border: 1px solid #263040;
-        border-left: 4px solid #107C41;
-        border-radius: 8px;
-        padding: 16px 20px;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    }
-    .kpi-title {
-        color: #94a3b8;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 6px;
-    }
-    .kpi-value {
-        color: #f8fafc;
-        font-size: 1.65rem;
+    section[data-testid="stSidebar"] h3 {
+        color: var(--accent);
         font-weight: 700;
     }
+
+    /* Título com degradê */
+    .stApp h1 {
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        background: linear-gradient(90deg, var(--accent) 0%, #ff8a7a 50%, var(--accent-blue) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    .stApp h3 {
+        font-weight: 700;
+        letter-spacing: -0.01em;
+    }
+
+    /* Cards dos indicadores (KPIs) */
+    .kpi-card {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(145deg, rgba(24, 33, 43, 0.92), rgba(14, 20, 27, 0.92));
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px 22px;
+        margin-bottom: 15px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .kpi-card::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-blue));
+    }
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(255, 60, 40, 0.40);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(255, 60, 40, 0.15);
+    }
+    .kpi-title {
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+    }
+    .kpi-value {
+        color: #ffffff;
+        font-size: 1.7rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
     .kpi-sub {
-        color: #107C41;
+        color: var(--accent);
         font-size: 0.8rem;
         font-weight: 600;
-        margin-top: 4px;
+        margin-top: 6px;
     }
 
     /* Linhas divisórias e abas */
     hr {
-        border-color: #263040;
+        border-color: var(--border);
+    }
+    div[data-baseweb="tab-list"] {
+        gap: 6px;
     }
     button[data-baseweb="tab"] {
-        color: #94a3b8;
-        font-weight: 500;
+        color: var(--muted);
+        font-weight: 600;
+        border-radius: 8px 8px 0 0;
+        padding: 8px 14px;
+    }
+    button[data-baseweb="tab"]:hover {
+        color: var(--text);
+        background: rgba(255, 60, 40, 0.07);
     }
     button[aria-selected="true"] {
-        color: #107C41 !important;
-        border-bottom-color: #107C41 !important;
+        color: var(--accent) !important;
+        background: rgba(255, 60, 40, 0.10) !important;
+    }
+    div[data-baseweb="tab-highlight"] {
+        background-color: var(--accent) !important;
+    }
+
+    /* Botão de download */
+    .stDownloadButton button {
+        background: linear-gradient(90deg, var(--accent-dark), var(--accent));
+        color: #ffffff;
+        font-weight: 700;
+        border: none;
+        border-radius: 10px;
+        padding: 0.55rem 1.2rem;
+        transition: filter 0.2s ease, transform 0.2s ease;
+    }
+    .stDownloadButton button:hover {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+        color: #ffffff;
+    }
+
+    /* Tabela */
+    div[data-testid="stDataFrame"] {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -72,8 +161,8 @@ st.markdown("""
 def gerar_dados():
     np.random.seed(42)
     datas = pd.date_range(start="2023-01-01", end="2023-12-31", freq="D")
-    categorias = ["Consoles", "Jogos Físicos", "Acessórios", "Game Pass", "Hardware PC"]
-    plataformas = ["Xbox Series X|S", "PC Game Pass", "Xbox Cloud Gaming"]
+    categorias = ["Consoles", "Jogos Físicos", "Acessórios", "Switch Online", "Amiibo"]
+    plataformas = ["Nintendo Switch", "Switch OLED", "Switch Lite"]
     
     dados = {
         "Data": np.random.choice(datas, 1200),
@@ -88,7 +177,7 @@ def gerar_dados():
 
 df = gerar_dados()
 
-st.sidebar.markdown("### 🎮 Painel de Filtros")
+st.sidebar.markdown("### 🍄 Painel de Filtros")
 st.sidebar.caption("Escolha as opções abaixo para atualizar os indicadores:")
 
 plataformas_disponiveis = list(df["Plataforma"].unique())
@@ -110,8 +199,8 @@ df_filtrado = df[
     (df["Categoria"].isin(filtro_categoria))
 ]
 
-st.title("Xbox — Vendas e Assinaturas Globais")
-st.caption("Painel de acompanhamento do desempenho do ecossistema de jogos Xbox")
+st.title("Vendas e Assinaturas Globais")
+st.caption("Painel de acompanhamento do desempenho do ecossistema de jogos Nintendo")
 st.markdown("---")
 
 if df_filtrado.empty:
@@ -178,15 +267,16 @@ with tab_graficos:
             color=alt.Gradient(
                 gradient='linear',
                 stops=[
-                    alt.GradientStop(color='#107C41', offset=0),
-                    alt.GradientStop(color='rgba(16, 124, 65, 0.05)', offset=1)
+                    alt.GradientStop(color='rgba(255, 60, 40, 0.02)', offset=0),
+                    alt.GradientStop(color='rgba(255, 60, 40, 0.55)', offset=1)
                 ],
                 x1=1, x2=1, y1=1, y2=0
             ),
-            line={'color': '#2ebd59', 'size': 2.5}
+            line={'color': '#ff3c28', 'size': 2.5},
+            interpolate='monotone'
         ).encode(
-            x=alt.X("Mês:N", title=None, axis=alt.Axis(labelColor="#94a3b8", labelAngle=0)),
-            y=alt.Y("Valor:Q", title="Receita (R$)", axis=alt.Axis(labelColor="#94a3b8", gridColor="#263040", format="~s")),
+            x=alt.X("Mês:N", title=None, axis=alt.Axis(labelColor="#8b98a9", titleColor="#8b98a9", labelAngle=0)),
+            y=alt.Y("Valor:Q", title="Receita (R$)", axis=alt.Axis(labelColor="#8b98a9", titleColor="#8b98a9", gridColor="rgba(148, 163, 184, 0.10)", domain=False, tickColor="rgba(0,0,0,0)", format="~s")),
             tooltip=[alt.Tooltip("Mês:N"), alt.Tooltip("Valor:Q", format=",.2f", title="Receita (R$)")]
         ).properties(height=320).configure_view(strokeOpacity=0).configure(background="transparent")
         
@@ -199,10 +289,10 @@ with tab_graficos:
         grafico_barras = alt.Chart(df_cat).mark_bar(
             cornerRadiusTopRight=4,
             cornerRadiusBottomRight=4,
-            color="#107C41"
+            color="#0ab9e6"
         ).encode(
-            x=alt.X("Valor:Q", title=None, axis=alt.Axis(labelColor="#94a3b8", gridColor="#263040", format="~s")),
-            y=alt.Y("Categoria:N", sort="-x", title=None, axis=alt.Axis(labelColor="#cbd5e1")),
+            x=alt.X("Valor:Q", title=None, axis=alt.Axis(labelColor="#8b98a9", titleColor="#8b98a9", gridColor="rgba(148, 163, 184, 0.10)", domain=False, tickColor="rgba(0,0,0,0)", format="~s")),
+            y=alt.Y("Categoria:N", sort="-x", title=None, axis=alt.Axis(labelColor="#e6edf3", domain=False, tickColor="rgba(0,0,0,0)")),
             tooltip=[alt.Tooltip("Categoria:N"), alt.Tooltip("Valor:Q", format=",.2f", title="Total (R$)")]
         ).properties(height=320).configure_view(strokeOpacity=0).configure(background="transparent")
         
@@ -215,10 +305,17 @@ with tab_detalhes:
     grafico_plat = alt.Chart(df_plat).mark_bar(
         cornerRadiusTopLeft=4,
         cornerRadiusTopRight=4,
-        color="#2ebd59"
+        color=alt.Gradient(
+            gradient='linear',
+            stops=[
+                alt.GradientStop(color='#e60012', offset=0),
+                alt.GradientStop(color='#ff3c28', offset=1)
+            ],
+            x1=1, x2=1, y1=1, y2=0
+        )
     ).encode(
-        x=alt.X("Plataforma:N", title=None, axis=alt.Axis(labelColor="#cbd5e1", labelAngle=0)),
-        y=alt.Y("Valor:Q", title="Total de Vendas (R$)", axis=alt.Axis(labelColor="#94a3b8", gridColor="#263040", format="~s")),
+        x=alt.X("Plataforma:N", title=None, axis=alt.Axis(labelColor="#e6edf3", domain=False, tickColor="rgba(0,0,0,0)", labelAngle=0)),
+        y=alt.Y("Valor:Q", title="Total de Vendas (R$)", axis=alt.Axis(labelColor="#8b98a9", titleColor="#8b98a9", gridColor="rgba(148, 163, 184, 0.10)", domain=False, tickColor="rgba(0,0,0,0)", format="~s")),
         tooltip=[alt.Tooltip("Plataforma:N"), alt.Tooltip("Valor:Q", format=",.2f")]
     ).properties(height=300).configure_view(strokeOpacity=0).configure(background="transparent")
     
@@ -232,6 +329,6 @@ with tab_dados:
     st.download_button(
         label="📥 Baixar Dados em CSV",
         data=csv,
-        file_name='vendas_xbox_filtradas.csv',
+        file_name='vendas_nintendo_filtradas.csv',
         mime='text/csv'
     )
